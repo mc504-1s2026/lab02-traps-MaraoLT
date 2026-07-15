@@ -1,32 +1,39 @@
 #include <arch/timer.h>
+#include <arch/csr.h>
 #include <kernel/panic.h>
+#include <kernel/printf.h>
+#include <kernel/serial.h>
 
 u64 timer_read()
 {
-	/* not implemented */
-	BUG();
+    return csr_read(CSR_TIME);
 }
 
 void timer_irq_enable()
 {
-	/* not implemented */
-	BUG();
+    csr_set(CSR_SIE, (1UL << 5)); // enable timer interrupt
+
+    csr_set(CSR_SSTATUS, (1UL << 1)); // enable global interrupts
 }
 
 void timer_irq_disable()
 {
-	/* not implemented */
-	BUG();
+    csr_clear(CSR_SIE, (1UL << 5)); // disable timer interrupt
 }
 
 void timer_set_alarm(u64 secs)
 {
-	/* not implemented */
-	BUG();
+    u64 now = timer_read();
+
+    u64 target = now + (secs * TIMER_FREQ);
+    csr_write(CSR_STIMECMP, target);
+
+    timer_irq_enable();
 }
 
 void timer_irq()
 {
-	/* not implemented */
-	BUG();
+    info("alarm\n");
+    timer_irq_disable();
+    serial_puts("> ");
 }
